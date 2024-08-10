@@ -1,7 +1,9 @@
-export type InvoiceList = {
+export type InvoiceMeta = {
   invoiceNumber: string;
   vendorName: string;
-}[];
+};
+
+export type InvoiceList = InvoiceMeta[];
 
 export type ReportRow = {
   invoiceNumber: string;
