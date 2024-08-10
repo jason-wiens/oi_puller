@@ -4,7 +4,8 @@
   "description": "The purpose of this project is to develop an automation tool to assist in pulling invoices from the Open Invoice web application.",
   "main": "index.js",
   "scripts": {
-    "start": "node build/server.js",
+    "start:prod": "node build/index.js",
+    "start:dev": "ts-node -r tsconfig-paths/register ./src/index.ts",
     "build": "tsc",
     "dev": "nodemon"
   },
@@ -19,6 +20,7 @@
     "exceljs": "^4.4.0",
     "langchain": "^0.2.5",
     "progress": "^2.0.3",
+    "puppeteer": "^23.0.2",
     "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20",
     "uuid": "^10.0.0",
