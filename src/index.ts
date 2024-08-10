@@ -5,7 +5,8 @@ import { login } from "./login";
 import { getInvoiceList } from "./get-invoice-list";
 
 import { TableData } from "./types";
-import { table } from "console";
+import { downloadAttachment } from "./download-attachment";
+import path from "path";
 
 config();
 
@@ -19,6 +20,13 @@ async function main() {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
   await page.setViewport({ width: 1600, height: 1024 });
+  const downloadPath = path.join(__dirname, "downloads");
+  console.log(downloadPath);
+  const client = await page.createCDPSession();
+  await client.send("Page.setDownloadBehavior", {
+    behavior: "allow",
+    downloadPath: downloadPath,
+  });
 
   try {
     console.log("Getting invoice list");
@@ -48,6 +56,9 @@ async function main() {
         tds.map((td) => td.textContent)
       );
 
+      const href = await row.$eval("td a", (a) => a.getAttribute("href"));
+      console.log(href);
+
       const docId = await row.evaluate((el) => el.getAttribute("id"));
 
       const rowObj = headers.reduce((obj, header, index) => {
@@ -64,6 +75,24 @@ async function main() {
       rowObj["docId"] = docId || "";
 
       tableData.push(rowObj);
+    }
+
+    await page.locator(`#${tableData[0].docId} a`).click();
+
+    await page.waitForSelector("#DIV_JOURNAL_attachments");
+    const attachmentRows = await page.$$("#DIV_JOURNAL_attachments tbody tr");
+
+    for (let i = 1; i < attachmentRows.length; i++) {
+      const row = attachmentRows[i];
+      const link = await row.$eval(
+        "td a",
+        (a) => a.getAttribute("href")?.split("&action")[0]
+      );
+      if (link) {
+        if (link.includes("pdf")) {
+          await downloadAttachment({ link, page });
+        }
+      }
     }
 
     console.log(tableData);
