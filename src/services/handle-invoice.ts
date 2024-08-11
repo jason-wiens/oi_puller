@@ -1,14 +1,16 @@
 import { handleInvoiceSelection } from "./handle-invoice-selection";
 
-import type { InvoiceMeta, ReportRow, TableData } from "@/types";
+import type { InvoiceMeta, ReportRow, TableData, VendorMap } from "../types";
 import type { ElementHandle, Page } from "puppeteer";
 import { downloadAttachment } from "./download-attachment.service";
+import { wait } from "../utils/wait";
 
 export const handleInvoice = async (args: {
   invoice: InvoiceMeta;
   page: Page;
+  mapper: VendorMap;
 }): Promise<ReportRow> => {
-  const { invoice, page } = args;
+  const { invoice, page, mapper } = args;
   const { invoiceNumber, vendorName } = invoice;
 
   try {
@@ -70,7 +72,7 @@ export const handleInvoice = async (args: {
     }
 
     // select the correct invoice from the search results
-    const res = await handleInvoiceSelection({ invoice, tableData });
+    const res = await handleInvoiceSelection({ invoice, tableData, mapper });
 
     // if no docId was returned it means that an appropriate vendor name was not
     // found in the list of search results, so we can exit early
@@ -113,6 +115,7 @@ export const handleInvoice = async (args: {
           const filename = `${docId}_${attachmentId}.pdf`;
           try {
             await downloadAttachment({ link, page, filename });
+            await wait(200);
             fileNames.push(filename);
           } catch (error) {
             comments += `Error downloading attachment: ${filename}. `;

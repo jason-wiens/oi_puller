@@ -1,3 +1,6 @@
 /node_modules
 .env
 /assets
+/build
+doc_list.xlsx
+downloads/

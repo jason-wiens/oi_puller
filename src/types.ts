@@ -16,6 +16,6 @@ export type ReportRow = {
   comments: string;
 };
 
-export type VendorMap = Record<string, string>;
+export type VendorMap = Record<string, string[]>;
 
 export type TableData = Record<string, string>[];

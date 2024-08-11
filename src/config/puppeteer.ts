@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer";
 import path from "path";
+import { DOWNLOADS_FOLDER } from "../constants";
 
 export const configPuppeteer = async (args: {
   downloadPath?: string;
@@ -12,7 +13,7 @@ export const configPuppeteer = async (args: {
 
   await page.setViewport({ width: 1600, height: 1024 });
 
-  const defaultDownloadPath = path.join(__dirname, "downloads");
+  const defaultDownloadPath = DOWNLOADS_FOLDER;
   const client = await page.createCDPSession();
   await client.send("Page.setDownloadBehavior", {
     behavior: "allow",

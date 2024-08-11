@@ -1,14 +1,18 @@
 import { Page } from "puppeteer";
 
-export const login = async (args: { page: Page }) => {
-  const { page } = args;
+export const login = async (args: {
+  page: Page;
+  credentials: {
+    username: string;
+    password: string;
+  };
+}) => {
+  const {
+    page,
+    credentials: { username, password },
+  } = args;
 
-  const { OI_USERNAME: username, OI_PASSWORD: password } = process.env;
-
-  if (!username || !password) {
-    throw new Error("Please provide USERNAME and PASSWORD in .env file");
-  }
-
+  console.log(`Logging in with username: ${username}`);
   await page.goto("https://www.openinvoice.com/docp/public/OILogin.xhtml");
 
   await page.locator('input[name="j_username"]').fill(username);
@@ -17,6 +21,7 @@ export const login = async (args: { page: Page }) => {
   await page.locator("#loginBtn").click();
 
   await page.waitForSelector("#globalSearchItemMenu2 input");
-
+  console.log("Login successful");
+  console.log("---");
   return;
 };

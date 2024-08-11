@@ -1,42 +1,52 @@
-import { configPuppeteer } from "./config";
-import { config } from "dotenv";
+import { configPuppeteer } from "./config/puppeteer";
+import ProgressBar from "progress";
 
-import { login } from "./login";
-import { getInvoiceList, writeReportToFile } from "./services/excel.service";
+import { login } from "./services/login.service";
+import { getConfig, writeReportToFile } from "./services/excel.service";
 
 import { ReportRow } from "./types";
 import path from "path";
 import { handleInvoice } from "./services/handle-invoice";
 
-config();
+import { OUTPUT_REPORT_FILE, DOWNLOADS_FOLDER } from "./constants";
 
 async function main() {
   const { page, browser } = await configPuppeteer({
-    downloadPath: path.join(__dirname, "downloads"),
-    headless: false,
+    downloadPath: DOWNLOADS_FOLDER,
+    headless: true,
+  });
+
+  const bar = new ProgressBar("Invoice :current/:total [:bar] :percent :etas", {
+    total: 1,
+    width: 40,
   });
 
   try {
-    const invoices = await getInvoiceList();
-    await login({ page });
+    const { invoiceList, credentials, mapper } = await getConfig();
+
+    await login({ page, credentials });
+
+    bar.total = invoiceList.length;
 
     const report: ReportRow[] = [];
-    for (const invoice of invoices) {
-      const row = await handleInvoice({ invoice, page });
+    for (const invoice of invoiceList) {
+      const row = await handleInvoice({ invoice, page, mapper });
       report.push(row);
+      bar.tick();
     }
 
     await writeReportToFile({
       report,
-      outputFilename: path.join(__dirname, "report.xlsx"),
+      outputFilename: OUTPUT_REPORT_FILE,
     });
   } catch (error) {
     console.error(error);
   } finally {
     await browser.close();
+    bar.terminate();
   }
 }
 
 main()
-  .then(() => console.log("Done"))
+  .then(() => console.log("Done! Make sure you buy Jason a beer!"))
   .catch(console.error);
